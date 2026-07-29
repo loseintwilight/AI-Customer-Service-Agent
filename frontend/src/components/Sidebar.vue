@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useChatStore } from '@/stores/chat'
 
 const store = useChatStore()
 const searchQuery = ref('')
+const hoverId = ref<string>('')
+const menuOpenId = ref<string>('')
 
 const filteredSessions = computed(() => {
   if (!searchQuery.value.trim()) return store.sessions
@@ -26,6 +28,38 @@ function formatTime(ts: number) {
   }
   return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })
 }
+
+function toggleMenu(id: string, e: Event) {
+  e.stopPropagation()
+  menuOpenId.value = menuOpenId.value === id ? '' : id
+}
+
+function closeMenu() {
+  menuOpenId.value = ''
+}
+
+function handleRename(session: any) {
+  closeMenu()
+  const newTitle = prompt('重命名对话', session.title)
+  if (newTitle && newTitle.trim()) {
+    session.title = newTitle.trim().slice(0, 30)
+  }
+}
+
+function handleDelete(id: string) {
+  closeMenu()
+  if (confirm('确定删除此对话？')) {
+    store.deleteSession(id)
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', closeMenu)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeMenu)
+})
 </script>
 
 <template>
@@ -33,10 +67,6 @@ function formatTime(ts: number) {
     <!-- 顶部搜索框 -->
     <div class="sidebar-search">
       <div class="search-box">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
         <input
           v-model="searchQuery"
           type="text"
@@ -48,10 +78,7 @@ function formatTime(ts: number) {
 
     <!-- 新对话按钮 -->
     <button class="new-chat-btn" @click="store.createNewSession()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"/>
-        <line x1="5" y1="12" x2="19" y2="12"/>
-      </svg>
+      <span class="plus-icon">+</span>
       <span>新对话</span>
     </button>
 
@@ -62,22 +89,34 @@ function formatTime(ts: number) {
         :key="session.id"
         class="session-item"
         :class="{ active: session.id === store.currentSessionId }"
-        @click="store.switchSession(session.id)"
+        @click="store.switchSession(session.id); closeMenu()"
+        @mouseenter="hoverId = session.id"
+        @mouseleave="hoverId = ''"
       >
         <div class="session-content">
           <div class="session-title">{{ session.title }}</div>
           <div class="session-time">{{ formatTime(session.createdAt) }}</div>
         </div>
+        <!-- 三点菜单按钮 -->
         <button
-          class="delete-btn"
-          @click.stop="store.deleteSession(session.id)"
-          title="删除对话"
+          v-show="hoverId === session.id || menuOpenId === session.id"
+          class="more-btn"
+          @click="toggleMenu(session.id, $event)"
+          title="更多操作"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3 6 5 6 21 6"/>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-          </svg>
+          ⋯
         </button>
+        <!-- 下拉菜单 -->
+        <div v-if="menuOpenId === session.id" class="dropdown-menu" @click.stop>
+          <div class="menu-item" @click="handleRename(session)">
+            <span class="menu-icon">✎</span>
+            <span>重命名</span>
+          </div>
+          <div class="menu-item menu-item-danger" @click="handleDelete(session.id)">
+            <span class="menu-icon">×</span>
+            <span>删除</span>
+          </div>
+        </div>
       </div>
 
       <div v-if="filteredSessions.length === 0" class="empty-hint">
@@ -89,10 +128,7 @@ function formatTime(ts: number) {
     <div class="sidebar-footer">
       <div class="user-info">
         <div class="user-avatar">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
+          <img src="/avatar.png" alt="用户" />
         </div>
         <span class="user-name">用户</span>
       </div>
@@ -109,6 +145,8 @@ function formatTime(ts: number) {
   display: flex;
   flex-direction: column;
   border-right: 1px solid #e5e5e5;
+  position: relative;
+  z-index: 10;
 }
 
 .sidebar-search {
@@ -121,17 +159,10 @@ function formatTime(ts: number) {
   align-items: center;
 }
 
-.search-icon {
-  position: absolute;
-  left: 12px;
-  color: #86868b;
-  pointer-events: none;
-}
-
 .search-input {
   width: 100%;
   height: 36px;
-  padding: 0 12px 0 36px;
+  padding: 0 12px;
   border: 1px solid #e5e5e5;
   border-radius: 8px;
   font-size: 13px;
@@ -154,8 +185,7 @@ function formatTime(ts: number) {
 .new-chat-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 8px;
   margin: 8px 16px;
   height: 36px;
   border: 1px solid #e5e5e5;
@@ -165,7 +195,15 @@ function formatTime(ts: number) {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
+  padding: 0 14px;
   transition: all 0.2s;
+}
+
+.plus-icon {
+  font-size: 16px;
+  color: #86868b;
+  font-weight: 400;
+  line-height: 1;
 }
 
 .new-chat-btn:hover {
@@ -177,13 +215,14 @@ function formatTime(ts: number) {
   flex: 1;
   overflow-y: auto;
   padding: 4px 8px;
+  position: relative;
 }
 
 .session-item {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s;
@@ -196,11 +235,12 @@ function formatTime(ts: number) {
 }
 
 .session-item.active {
-  background: #f0f0f0;
+  background: #e8e8ed;
 }
 
 .session-item.active .session-title {
-  font-weight: 500;
+  font-weight: 600;
+  color: #0066cc;
 }
 
 .session-content {
@@ -223,28 +263,72 @@ function formatTime(ts: number) {
   margin-top: 2px;
 }
 
-.delete-btn {
+.more-btn {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
   border: none;
   background: transparent;
   color: #86868b;
   cursor: pointer;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  line-height: 1;
   transition: all 0.15s;
 }
 
-.session-item:hover .delete-btn {
-  display: flex;
+.more-btn:hover {
+  background: #d1d1d6;
+  color: #1d1d1f;
 }
 
-.delete-btn:hover {
-  background: #f0f0f0;
+/* 下拉菜单 */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 8px;
+  margin-top: 4px;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  min-width: 120px;
+  z-index: 100;
+  overflow: hidden;
+  padding: 4px 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #1d1d1f;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.menu-item:hover {
+  background: #f5f5f7;
+}
+
+.menu-item-danger {
   color: #ff3b30;
+}
+
+.menu-item-danger:hover {
+  background: #fff0ef;
+}
+
+.menu-icon {
+  width: 14px;
+  text-align: center;
+  font-size: 14px;
 }
 
 .empty-hint {
@@ -283,6 +367,15 @@ function formatTime(ts: number) {
   align-items: center;
   justify-content: center;
   color: #86868b;
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .user-name {

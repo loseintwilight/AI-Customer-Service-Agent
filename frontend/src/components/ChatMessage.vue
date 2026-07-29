@@ -31,58 +31,43 @@ function formatTime(ts: number) {
   <div class="message-wrapper" :class="message.type">
     <!-- AI 头像：左侧 -->
     <div v-if="message.type === 'ai'" class="avatar av-ai">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2a8 8 0 0 0-8 8c0 2.5 1.2 4.7 3 6l-1 4 4-2.5c.6.3 1.3.5 2 .5a8 8 0 1 0 0-16Z"/>
-        <path d="M9 10h.01"/>
-        <path d="M15 10h.01"/>
-        <path d="M12 14c.5.5 1.3 1 2 1s1.5-.5 2-1"/>
-      </svg>
+      <img src="/avatar.png" alt="AI" />
     </div>
 
     <!-- 消息内容区域 -->
     <div class="body" :class="message.type">
-      <!-- AI 消息：显示气泡内容 -->
+      <!-- AI 消息 -->
       <div v-if="message.type === 'ai'" class="bubble bubble-ai">
-        <!-- 正在流式且无内容 → 显示加载点 -->
         <div v-if="!message.content && message.isStreaming" class="loading-dots">
           <span class="dot"></span>
           <span class="dot"></span>
           <span class="dot"></span>
         </div>
-        <!-- 有内容 → 渲染 Markdown -->
         <div v-else-if="message.content" class="message-content" :class="{ 'typing-cursor': message.isStreaming }" v-html="renderedContent"></div>
-        <!-- 图表 -->
         <ChartView v-if="message.chartData" :data="message.chartData" />
-        <!-- 图片 -->
         <img v-if="message.imageUrl" :src="message.imageUrl" class="msg-image" alt="AI 生成图片" />
-        <!-- 流式时的停止按钮 -->
         <button
           v-if="message.isStreaming"
           class="stop-stream-btn"
           @click="store.cancelStream()"
           title="停止生成"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-            <rect x="4" y="4" width="16" height="16" rx="2"/>
-          </svg>
-          <span>停止生成</span>
+          停止生成
         </button>
-        <div class="msg-time">{{ formatTime(message.timestamp) }}</div>
       </div>
 
-      <!-- 用户消息：显示气泡内容 -->
+      <!-- 用户消息 -->
       <div v-else class="bubble bubble-user">
         <div class="message-content" v-html="renderedContent"></div>
-        <div class="msg-time">{{ formatTime(message.timestamp) }}</div>
       </div>
+
+      <!-- 时间戳（独立显示在气泡下方） -->
+      <div class="msg-time">{{ formatTime(message.timestamp) }}</div>
     </div>
 
     <!-- 用户头像：右侧 -->
     <div v-if="message.type === 'user'" class="avatar av-user">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
+      <img src="/avatar.png" alt="用户" />
     </div>
   </div>
 </template>
@@ -90,9 +75,9 @@ function formatTime(ts: number) {
 <style scoped>
 .message-wrapper {
   display: flex;
-  gap: 10px;
-  padding: 12px 24px;
-  max-width: 860px;
+  gap: 12px;
+  padding: 16px 24px;
+  max-width: 800px;
   margin: 0 auto;
   width: 100%;
   animation: slideIn 0.25s ease-out;
@@ -104,72 +89,93 @@ function formatTime(ts: number) {
 
 .avatar {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 4px;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .av-ai {
-  background: #f0f0f0;
-  color: #86868b;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
 }
 
 .av-user {
-  background: #f0f0f0;
-  color: #86868b;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
 }
 
 .body {
   max-width: 75%;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .body.user {
-  display: flex;
-  flex-direction: column;
   align-items: flex-end;
 }
 
 .body.ai {
-  display: flex;
-  flex-direction: column;
   align-items: flex-start;
 }
 
 .bubble {
-  padding: 10px 16px;
+  padding: 12px 16px;
   font-size: 14px;
-  line-height: 1.7;
+  line-height: 1.65;
   word-break: break-word;
   white-space: pre-wrap;
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
 }
 
-/* 用户气泡：浅灰底色，圆角居右 */
+/* 用户气泡：纯浅灰底色 */
 .bubble-user {
   background: #f0f0f0;
   color: #1d1d1f;
-  border-radius: 16px 16px 4px 16px;
+  border-radius: 16px;
+  border: none;
 }
 
-/* AI 气泡：纯白，无边框，居左 */
+/* AI 气泡：浅灰底色包裹，参考豆包样式 */
 .bubble-ai {
-  background: transparent;
+  background: #f0f0f0;
   color: #1d1d1f;
-  padding: 10px 0;
+  border-radius: 16px;
+  border: none;
 }
 
 .msg-time {
   font-size: 11px;
   color: #c7c7c7;
   margin-top: 4px;
+  padding: 0 2px;
+  line-height: 1;
+  width: 100%;
 }
 
-.bubble-user .msg-time {
+.body.user .msg-time {
   text-align: right;
+}
+
+.body.ai .msg-time {
+  text-align: left;
 }
 
 .msg-image {

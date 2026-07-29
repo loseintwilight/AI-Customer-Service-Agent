@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useChatStore } from '@/stores/chat'
 
-const store = useChatStore()
 const showModelMenu = ref(false)
 const currentModel = ref('qwen-plus')
 
 const models = [
   { value: 'qwen-plus', label: 'qwen-plus' },
   { value: 'qwen-max', label: 'qwen-max' },
+  { value: 'qwen-turbo', label: 'qwen-turbo' },
   { value: 'deepseek', label: 'DeepSeek' },
 ]
 
@@ -20,21 +19,13 @@ function selectModel(model: string) {
 
 <template>
   <div class="chat-header">
+    <div class="header-left"></div>
     <div class="header-center">
-      <h1 class="header-title">{{ store.currentSession?.title || '新对话' }}</h1>
+      <h1 class="header-title">AI 智能客服</h1>
     </div>
     <div class="header-right">
       <div class="model-selector" @click="showModelMenu = !showModelMenu">
         <span class="model-label">{{ currentModel }}</span>
-        <svg
-          class="model-arrow"
-          :class="{ rotated: showModelMenu }"
-          width="14" height="14" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round"
-        >
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
         <div v-if="showModelMenu" class="model-dropdown" @click.stop>
           <div
             v-for="m in models"
@@ -56,11 +47,17 @@ function selectModel(model: string) {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 12px 24px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e5e5;
-  min-height: 52px;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(229, 229, 229, 0.6);
+  min-height: 56px;
+}
+
+.header-left {
+  width: 140px;
 }
 
 .header-center {
@@ -71,17 +68,17 @@ function selectModel(model: string) {
 }
 
 .header-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #1d1d1f;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 300px;
+  letter-spacing: 0.2px;
 }
 
 .header-right {
-  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .model-selector {
@@ -89,42 +86,34 @@ function selectModel(model: string) {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 5px 12px;
   border: 1px solid #e5e5e5;
-  border-radius: 6px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.15s;
   user-select: none;
+  background: #ffffff;
 }
 
 .model-selector:hover {
   background: #f5f5f7;
+  border-color: #d1d1d6;
 }
 
 .model-label {
   font-size: 12px;
-  color: #86868b;
+  color: #1d1d1f;
   font-weight: 500;
-}
-
-.model-arrow {
-  color: #86868b;
-  transition: transform 0.2s;
-}
-
-.model-arrow.rotated {
-  transform: rotate(180deg);
 }
 
 .model-dropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   right: 0;
-  margin-top: 4px;
   background: #ffffff;
   border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   min-width: 140px;
   z-index: 100;
   overflow: hidden;
@@ -144,6 +133,7 @@ function selectModel(model: string) {
 
 .model-option.selected {
   color: #0066cc;
-  font-weight: 500;
+  font-weight: 600;
+  background: rgba(0, 102, 204, 0.05);
 }
 </style>

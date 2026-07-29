@@ -1,23 +1,25 @@
 # AI 智能客服综合平台
 
-基于 **LangChain + FastAPI** 构建的 AI 综合平台，集智能客服、Text2SQL、BI 报表、AI 生图于一体。
+基于 **LangChain + FastAPI + Vue.js** 构建的 AI 综合平台，集智能客服、Text2SQL、BI 报表、AI 生图于一体。
 
 ---
 
 ## 环境要求
 
-| 组件 | 版本 |
-|------|------|
-| Python | 3.10 |
-| MySQL | 8.0+ |
-| Redis | 5.0+ |
-| Node.js | 16+（前端项目需要） |
+| 组件 | 版本 | 说明 |
+|------|------|------|
+| Python | 3.10 | 后端运行环境 |
+| MySQL | 8.0+ | 业务数据存储 |
+| Redis | 5.0+ | 对话记忆存储 |
+| Node.js | 16+ | 前端项目运行 |
 
 ---
 
 ## 快速启动
 
-### 1. 配置环境变量
+### 第一步：后端配置和启动
+
+#### 1. 配置环境变量
 
 复制 `.env.example` 为 `.env`，填入必要配置：
 
@@ -29,22 +31,22 @@ DASHSCOPE_API_KEY=sk-xxxxxxxxxxxx
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=123456
-DB_NAME=db2
+DB_PASSWORD=666666
+DB_NAME=ai_customer
 
 # Redis 配置（按需修改）
 REDIS_HOST=localhost
 REDIS_PORT=6379
 ```
 
-### 2. 安装依赖
+#### 2. 安装后端依赖
 
 ```bash
 cd ai_customer_service
 pip install -r requirements.txt
 ```
 
-### 3. 初始化数据库
+#### 3. 初始化数据库
 
 在 MySQL 中执行建表脚本：
 
@@ -52,7 +54,7 @@ pip install -r requirements.txt
 mysql -u root -p < scripts/init_db.sql
 ```
 
-### 4. 启动服务
+#### 4. 启动后端服务
 
 ```bash
 # 方式一：默认端口（从 .env 读取，默认 8089）
@@ -67,9 +69,36 @@ python app/main.py
 
 启动后访问 http://localhost:8089 查看服务状态。
 
+### 第二步：前端启动
+
+前端项目位于 `frontend/` 目录下，是一个独立的 Vite + Vue 3 项目。
+
+#### 1. 安装前端依赖
+
+```bash
+cd ai_customer_service/frontend
+npm install
+```
+
+#### 2. 启动前端开发服务器
+
+```bash
+npm run dev
+```
+
+启动后访问 http://localhost:5173/ 即可使用。
+
+**注意**：前端通过 Vite proxy 代理将 `/ai` 和 `/question` 请求转发到后端（默认 http://localhost:8089），
+因此前端不需要手动配置后端地址。如果后端端口更改，请同步修改 `frontend/vite.config.ts` 中的 `target` 配置。
+
 ---
 
 ## 端口说明
+
+| 端口 | 说明 |
+|------|------|
+| 8089 | 后端 FastAPI 服务（默认） |
+| 5173 | 前端 Vite 开发服务器 |
 
 > **注意**：Windows 系统可能将某些端口（如 8090）加入排除范围，
 > 导致普通用户无法绑定。默认端口改为 **8089**，如需修改可在 `.env` 中调整 `SERVER_PORT`。
@@ -212,3 +241,8 @@ pip install -r requirements.txt
 ### Redis 连接失败
 
 如果不需要对话记忆功能，可以暂时注释掉 `chat_router.py` 中相关代码。
+
+### 前端页面无法访问
+
+确保先执行 `npm install` 安装依赖，再执行 `npm run dev` 启动开发服务器。
+如果遇到端口冲突，可以在 `frontend/vite.config.ts` 中修改 `server.port` 配置。

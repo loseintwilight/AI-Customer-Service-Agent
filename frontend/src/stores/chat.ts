@@ -25,6 +25,8 @@ export const useChatStore = defineStore('chat', () => {
   const currentSessionId = ref<string>('')
   const isStreaming = ref(false)
   const isLoading = ref(false)
+  /** 当前活跃的 EventSource，用于中断流式输出 */
+  let currentEventSource: EventSource | null = null
 
   const currentSession = computed(() => {
     return sessions.value.find(s => s.id === currentSessionId.value)

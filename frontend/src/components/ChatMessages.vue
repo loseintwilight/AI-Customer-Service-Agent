@@ -7,15 +7,14 @@ const store = useChatStore()
 const messagesRef = ref<HTMLDivElement>()
 
 const suggestions = [
-  { text: '查询薪资前5的教师', icon: '📊' },
-  { text: '统计学生的绩点分布', icon: '📈' },
-  { text: '查询各个课程的预约占比', icon: '📋' },
-  { text: '查询男学生女学生各所占比例', icon: '👥' },
-  { text: '根据入职年份查询教师薪资走向', icon: '📉' },
-  { text: '查询预约课程的取消比率', icon: '📌' },
+  { text: '查询薪资前5的教师', icon: '★' },
+  { text: '统计学生的绩点分布', icon: '◆' },
+  { text: '查询各个课程的预约占比', icon: '●' },
+  { text: '查询男学生女学生各所占比例', icon: '▲' },
+  { text: '根据入职年份查询教师薪资走向', icon: '▼' },
+  { text: '查询预约课程的取消比率', icon: '■' },
 ]
 
-// 消息数量变化时自动滚动到底部
 watch(
   () => store.messages.length,
   async () => {
@@ -25,7 +24,6 @@ watch(
   { deep: true }
 )
 
-// 流式内容更新时滚动
 watch(
   () => {
     const msgs = store.messages
@@ -48,23 +46,25 @@ function scrollToBottom() {
   <div ref="messagesRef" class="messages-area">
     <!-- 空白欢迎页 -->
     <div v-if="store.messages.length === 0" class="welcome">
-      <h2 class="welcome-title">有什么我能帮你的吗？</h2>
-      <p class="welcome-desc">我可以帮你查询数据、分析报表、生成图表，试试下面的快捷提问</p>
-      <div class="suggestion-grid">
-        <div
-          v-for="(s, i) in suggestions"
-          :key="i"
-          class="suggestion-card"
-          @click="store.sendMessage(s.text)"
-        >
-          <span class="suggestion-icon">{{ s.icon }}</span>
-          <span class="suggestion-text">{{ s.text }}</span>
+      <div class="welcome-card">
+        <h2 class="welcome-title">有什么我能帮你的吗？</h2>
+        <p class="welcome-desc">我可以帮你查询数据、分析报表、生成图表，试试下面的快捷提问</p>
+        <div class="suggestion-grid">
+          <div
+            v-for="(s, i) in suggestions"
+            :key="i"
+            class="suggestion-card"
+            @click="store.sendMessage(s.text)"
+          >
+            <span class="suggestion-icon">{{ s.icon }}</span>
+            <span class="suggestion-text">{{ s.text }}</span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- 消息列表 -->
-    <div v-for="msg in store.messages" :key="msg.id">
+    <div v-for="msg in store.messages" :key="msg.id" class="msg-row">
       <ChatMessage :message="msg" />
     </div>
   </div>
@@ -74,7 +74,8 @@ function scrollToBottom() {
 .messages-area {
   flex: 1;
   overflow-y: auto;
-  background: #ffffff;
+  background: transparent;
+  position: relative;
 }
 
 .welcome {
@@ -84,7 +85,22 @@ function scrollToBottom() {
   justify-content: center;
   height: 100%;
   padding: 40px 24px;
+}
+
+.welcome-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  max-width: 520px;
+  width: 100%;
+  padding: 32px 24px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
 
 .welcome-title {
@@ -98,7 +114,7 @@ function scrollToBottom() {
 .welcome-desc {
   font-size: 14px;
   color: #86868b;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   line-height: 1.5;
 }
 
@@ -106,7 +122,6 @@ function scrollToBottom() {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
-  max-width: 480px;
   width: 100%;
 }
 
@@ -115,8 +130,8 @@ function scrollToBottom() {
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(229, 229, 229, 0.8);
   border-radius: 10px;
   font-size: 13px;
   color: #1d1d1f;
@@ -126,16 +141,24 @@ function scrollToBottom() {
 }
 
 .suggestion-card:hover {
-  background: #f5f5f7;
-  border-color: #d1d1d6;
+  background: #ffffff;
+  border-color: #0066cc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.12);
 }
 
 .suggestion-icon {
-  font-size: 16px;
+  font-size: 14px;
   flex-shrink: 0;
+  color: #667eea;
+  font-weight: bold;
 }
 
 .suggestion-text {
   line-height: 1.4;
+}
+
+.msg-row {
+  width: 100%;
 }
 </style>
