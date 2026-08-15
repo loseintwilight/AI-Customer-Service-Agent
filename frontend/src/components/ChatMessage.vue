@@ -54,6 +54,11 @@ function formatTime(ts: number) {
         >
           停止生成
         </button>
+        <!-- 已停止提示（参考豆包） -->
+        <div v-else-if="message.isStopped" class="stopped-hint">
+          <span class="stopped-icon">⏹</span>
+          <span>已停止</span>
+        </div>
       </div>
 
       <!-- 用户消息 -->
@@ -138,7 +143,6 @@ function formatTime(ts: number) {
   font-size: 14px;
   line-height: 1.65;
   word-break: break-word;
-  white-space: pre-wrap;
   position: relative;
   display: inline-block;
   width: fit-content;
@@ -205,6 +209,25 @@ function formatTime(ts: number) {
   background: #f5f5f7;
   color: #1d1d1f;
   border-color: #86868b;
+}
+
+/* 已停止提示（参考豆包） */
+.stopped-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.04);
+  color: #86868b;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.stopped-icon {
+  font-size: 10px;
+  color: #86868b;
 }
 
 /* 加载点动画 */

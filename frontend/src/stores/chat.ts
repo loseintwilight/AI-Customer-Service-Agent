@@ -9,6 +9,7 @@ export interface Message {
   content: string
   timestamp: number
   isStreaming?: boolean
+  isStopped?: boolean
   chartData?: ChartData | null
   imageUrl?: string
 }
@@ -135,12 +136,18 @@ export const useChatStore = defineStore('chat', () => {
       currentEventSource.close()
       currentEventSource = null
     }
-    // 如果流式从未收到数据，删除空的 AI 占位消息
+    // 标记最后一条 AI 消息为已停止（保留已生成内容，不删除）
     if (currentSession.value) {
       const msgs = currentSession.value.messages
       const last = msgs[msgs.length - 1]
-      if (last && last.type === 'ai' && !last.content && !last.chartData) {
-        msgs.pop()
+      if (last && last.type === 'ai') {
+        if (!last.content && !last.chartData) {
+          // 从未收到任何内容，直接删除占位消息
+          msgs.pop()
+        } else {
+          // 已有内容，标记为停止
+          last.isStopped = true
+        }
       }
     }
     resetLoadingState()
@@ -224,7 +231,8 @@ export const useChatStore = defineStore('chat', () => {
               resetLoadingState()
               return
             }
-            updateLastMessage(event.data, true)
+            const data = event.data.replace(/\n+$/, '')
+            updateLastMessage(data, true)
           }
           es.onerror = () => {
             es.close()
