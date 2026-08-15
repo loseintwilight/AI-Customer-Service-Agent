@@ -65,7 +65,9 @@ async def root():
         "status": "running",
         "endpoints": {
             "chat": "/ai/chat",
-            "stream": "/ai/stream",
+            "chat_stream": "/ai/stream",
+            "chat_agent": "/ai/chat/agent",
+            "chat_role": "/ai/chat/role",
             "text2sql": "/ai/text2sql",
             "history": "/ai/history",
             "charts": "/ai/charts",

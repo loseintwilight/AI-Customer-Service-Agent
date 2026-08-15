@@ -110,8 +110,10 @@ npm run dev
 | 接口 | 方法 | 说明 |
 |------|------|------|
 | `/` | GET | 服务健康检查，查看所有可用端点 |
-| `/ai/chat` | GET | 智能客服对话（支持 session_id 区分会话） |
-| `/ai/stream` | GET | 流式对话（SSE 模式） |
+| `/ai/chat` | GET | 智能客服对话（支持 session_id、RAG 检索、角色化） |
+| `/ai/stream` | GET | 流式对话（SSE 模式，支持 RAG 检索） |
+| `/ai/chat/agent` | GET | Agent 工具调用聊天（Tool Calling，支持约课操作） |
+| `/ai/chat/role` | GET | 角色化聊天（使用 AIRole 结构化角色定义） |
 | `/ai/text2sql` | GET | 自然语言转 SQL 查询 |
 | `/ai/charts` | GET | BI 图表分析（Text2SQL + 大模型分析 + 图表数据） |
 | `/ai/image` | GET | AI 文生图（宣传海报） |
@@ -123,16 +125,22 @@ npm run dev
 
 ## 功能模块
 
-### 模块一：AI 智能客服
+### 模块一：AI 智能客服（增强版）
 
-基于 ChatTongyi + Redis 对话记忆，支持多轮对话。
+基于 ChatTongyi + Redis 对话记忆 + ChromaDB RAG 检索，支持多轮对话。
 
 ```bash
-# 对话（普通输出）
+# 对话（普通输出，支持 RAG 检索）
 curl "http://localhost:8089/ai/chat?msg=你好&session_id=1"
 
-# 流式对话（SSE）
+# 流式对话（SSE，支持 RAG 检索）
 curl -N "http://localhost:8089/ai/stream?msg=你好&session_id=1"
+
+# Agent 工具调用聊天（支持约课等操作）
+curl "http://localhost:8089/ai/chat/agent?msg=帮小明预约数学课&session_id=1"
+
+# 角色化聊天（结构化 AIRole 角色定义）
+curl "http://localhost:8089/ai/chat/role?msg=介绍一下你自己&role_name=明星介绍助手&expertise=明星介绍和娱乐资讯"
 ```
 
 ### 模块二：Text2SQL
