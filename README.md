@@ -31,7 +31,7 @@ DASHSCOPE_API_KEY=sk-xxxxxxxxxxxx
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=666666
+DB_PASSWORD=your_password_here
 DB_NAME=ai_customer
 
 # Redis 配置（按需修改）
